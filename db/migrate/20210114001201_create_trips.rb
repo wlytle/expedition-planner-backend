@@ -6,7 +6,7 @@ class CreateTrips < ActiveRecord::Migration[6.0]
       t.string :name
       t.boolean :completed
       t.text :notes
-      t.references :creator_id, null: false, foreign_key: true
+      t.integer :creator_id
 
       t.timestamps
     end
