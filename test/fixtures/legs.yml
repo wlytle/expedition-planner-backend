@@ -1,0 +1,17 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  Trip: one
+  UserTrip: one
+  sport: MyString
+  distance: 1.5
+  aeg: 1.5
+  notes: MyText
+
+two:
+  Trip: two
+  UserTrip: two
+  sport: MyString
+  distance: 1.5
+  aeg: 1.5
+  notes: MyText
