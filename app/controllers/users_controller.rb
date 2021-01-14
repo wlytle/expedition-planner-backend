@@ -1,6 +1,6 @@
 class UsersController < ApplicationController
-  before_action :set_user, only: [:show, :update, :destroy]
-  skip_before_action :authorized, only: [:create]
+  before_action :set_user, only: [:update, :destroy, :login]
+  skip_before_action :authorized, only: [:create, :login]
 
   # GET /users
   def index
@@ -39,6 +39,16 @@ class UsersController < ApplicationController
     @user.destroy
   end
 
+  def login
+    byebug
+    if @user && @user.authenticate(user_params[:password])
+      @token = encode_token(user_id: @user.id)
+      render json: { user: @user, jwt: @token }, status: :created
+    else
+      render json: "Puppies are Awesome!"
+    end
+  end
+
   private
 
   # Use callbacks to share common setup or constraints between actions.
@@ -46,7 +56,6 @@ class UsersController < ApplicationController
     @user = User.find(params[:id])
   end
 
-  # Only allow a trusted parameter "white list" through.
   def user_params
     params.require(:user).permit(:user_name, :password)
   end
