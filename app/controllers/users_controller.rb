@@ -28,25 +28,14 @@ class UsersController < ApplicationController
   # PATCH/PUT /users/1
   def update
     if @user.update(user_params)
-      render json: @user
-    else
-      render json: @user.errors, status: :unprocessable_entity
+      @token = encode_token(user_id: @user.id)
+      render json: { user: @user, jwt: @token }, status: :created
     end
   end
 
   # DELETE /users/1
   def destroy
     @user.destroy
-  end
-
-  def login
-    byebug
-    if @user && @user.authenticate(user_params[:password])
-      @token = encode_token(user_id: @user.id)
-      render json: { user: @user, jwt: @token }, status: :created
-    else
-      render json: "Puppies are Awesome!"
-    end
   end
 
   private
