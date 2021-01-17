@@ -39,13 +39,14 @@ class UserTripsController < ApplicationController
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_user_trip
-      @user_trip = UserTrip.find(params[:id])
-    end
 
-    # Only allow a trusted parameter "white list" through.
-    def user_trip_params
-      params.require(:user_trip).permit(:trip_id, :user_id, :accepted, :notes)
-    end
+  # Use callbacks to share common setup or constraints between actions.
+  def set_user_trip
+    @user_trip = UserTrip.find(params[:id])
+  end
+
+  # Only allow a trusted parameter "white list" through.
+  def user_trip_params
+    params.require(:user_trip).permit(:trip_id, :user_id, :accepted, :notes, :created)
+  end
 end

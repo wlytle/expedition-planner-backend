@@ -16,9 +16,10 @@ class TripsController < ApplicationController
   # POST /trips
   def create
     @trip = Trip.new(trip_params)
+    @trip.user_trips.build(user: current_user, accepted: true, created: true)
 
     if @trip.save
-      render json: @trip, status: :created, location: @trip
+      render json: @trip.as_json(except: [:created_at, :updated_at]), status: :created, location: @trip
     else
       render json: @trip.errors, status: :unprocessable_entity
     end
@@ -39,13 +40,14 @@ class TripsController < ApplicationController
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_trip
-      @trip = Trip.find(params[:id])
-    end
 
-    # Only allow a trusted parameter "white list" through.
-    def trip_params
-      params.require(:trip).permit(:start_date, :end_date, :name, :completed, :notes, :creator_id_id)
-    end
+  # Use callbacks to share common setup or constraints between actions.
+  def set_trip
+    @trip = Trip.find(params[:id])
+  end
+
+  # Only allow a trusted parameter "white list" through.
+  def trip_params
+    params.require(:trip).permit(:start_date, :end_date, :name, :completed, :notes)
+  end
 end

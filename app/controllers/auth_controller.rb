@@ -7,7 +7,7 @@ class AuthController < ApplicationController
       @token = encode_token(user_id: @user.id)
       render json: { user: @user, jwt: @token }, status: :created
     else
-      render json: { error: "Puppies are Awesome!" }
+      render json: { error: "Incorrect username or password" }
     end
   end
 end
