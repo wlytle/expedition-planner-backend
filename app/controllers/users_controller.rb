@@ -1,6 +1,6 @@
 class UsersController < ApplicationController
-  before_action :set_user, only: [:show, :update, :destroy]
-  skip_before_action :authorized, only: [:create]
+  before_action :set_user, only: [:update, :destroy, :login]
+  skip_before_action :authorized, only: [:create, :login]
 
   # GET /users
   def index
@@ -21,16 +21,17 @@ class UsersController < ApplicationController
       @token = encode_token(user_id: @user.id)
       render json: { user: @user, jwt: @token }, status: :created
     else
-      render json: { error: "failed to create user" }, status: :not_acceptable
+      render json: { error: @user.errors }, status: :not_acceptable
     end
   end
 
   # PATCH/PUT /users/1
   def update
     if @user.update(user_params)
-      render json: @user
+      @token = encode_token(user_id: @user.id)
+      render json: { user: @user, jwt: @token }, status: :created
     else
-      render json: @user.errors, status: :unprocessable_entity
+      render json: { error: @user.errors[:user_name] }, status: :not_acceptable
     end
   end
 
@@ -46,8 +47,7 @@ class UsersController < ApplicationController
     @user = User.find(params[:id])
   end
 
-  # Only allow a trusted parameter "white list" through.
   def user_params
-    params.require(:user).permit(:user_name, :password)
+    params.require(:user).permit(:user_name, :password, :password_confirmation)
   end
 end
