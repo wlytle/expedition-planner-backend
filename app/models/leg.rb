@@ -1,5 +1,5 @@
 class Leg < ApplicationRecord
-  belongs_to :Trip
-  belongs_to :UserTrip
-  has_many :Locations
+  belongs_to :trip
+  belongs_to :user_trip
+  has_many :locations
 end
