@@ -34,6 +34,34 @@ class LegsController < ApplicationController
 
   # PATCH/PUT /legs/1
   def update
+    # get length of lpolyline before and after update
+    params_len = params[:locs].length
+    locs_len = @leg.locations.length
+    # update locations while we have already made lcoations and new data with which to update
+    i = 0
+    while i < params_len && i < locs_len
+      @leg.locations[i].update(lat: params[:locs][i][:lat], lng: params[:locs][i][:lng])
+      i += 1
+      puts i
+    end
+
+    # make new lcoation data points for remianind data
+    if i < params_len
+      while i < params_len
+        @leg.locations.build(lat: params[:locs][i][:lat], lng: params[:locs][i][:lng])
+        i += 1
+        puts i
+      end
+      # delete remaining locations that are no longer represented after the update
+    elsif i < locs_len
+      while i < locs_len
+        @leg.locations[i].delete
+        i += 1
+        puts i
+      end
+    end
+
+    # save the udpate and update the distance now saved in leg_params
     if @leg.update(leg_params)
       render json: @leg
     else
