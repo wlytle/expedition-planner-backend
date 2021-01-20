@@ -1,5 +1,5 @@
 class LegsController < ApplicationController
-  before_action :set_leg, only: [:show, :update, :destroy]
+  before_action :set_leg, only: [:show, :update, :update_meta, :destroy]
 
   # GET /legs
   def index
@@ -24,6 +24,10 @@ class LegsController < ApplicationController
     @leg.user_trip = user_trip
     # Build associated locations with leg
     params[:locs].each { |loc| @leg.locations.build(lat: loc[:lat], lng: loc[:lng]) }
+    # initialize leg with same start and end dates as trip
+    @leg.start_date = trip.start_date
+    @leg.end_date = trip.end_date
+    @leg.notes = ""
 
     if @leg.save
       render json: @leg
@@ -34,33 +38,23 @@ class LegsController < ApplicationController
 
   # PATCH/PUT /legs/1
   def update
-    # # get length of lpolyline before and after update
-    # params_len = params[:locs].length
-    # locs_len = @leg.locations.length
-    # # update locations while we have already made lcoations and new data with which to update
-    # byebug
-    # i = 0
-    # while i < params_len && i < locs_len
-    #   @leg.locations[i].update(lat: params[:locs][i][:lat], lng: params[:locs][i][:lng])
-    #   i += 1
-    # end
-
-    # # make new lcoation data points for remianind data
-    # if i < params_len
-    #   while i < params_len
-    #     @leg.locations.build(lat: params[:locs][i][:lat], lng: params[:locs][i][:lng])
-    #     i += 1
-    #   end
-    #   # delete remaining locations that are no longer represented after the update
-    # elsif i < locs_len
-    #   while i < locs_len
-    #     @leg.locations[i].delete
-    #     i += 1
-    #   end
-    # end
+    # Remove all previous leg lcoations and remake the path. With A LOT more time this could be made more efficient
     @leg.locations.destroy_all
-    params[:locs].each { |loc| @leg.locations.build(lat: loc[:lat], lng: loc[:lng]) }
+    eles = get_ele params[:locs]
+    params[:locs].each_with_index { |loc, i| @leg.locations.build(lat: loc[:lat], lng: loc[:lng], ele: eles[i]["height"]) }
+    # get AEG
+    aeg = eles.map { |e| e["height"] }.sum
+    @leg.aeg = aeg
+    
     # save the udpate and update the distance now saved in leg_params
+    if @leg.update(leg_params)
+      render json: @leg
+    else
+      render json: @leg.errors, status: :unprocessable_entity
+    end
+  end
+
+  def update_meta
     if @leg.update(leg_params)
       render json: @leg
     else
@@ -82,6 +76,43 @@ class LegsController < ApplicationController
 
   # Only allow a trusted parameter "white list" through.
   def leg_params
-    params.require(:leg).permit(:trip_id, :user_trip_id, :sport, :distance, :aeg, :notes)
+    params.require(:leg).permit(:trip_id, :user_trip_id, :sport, :distance, :aeg, :notes, :start_date, :end_date)
+  end
+
+  def get_ele(locs)
+    key = MAP_QUEST
+    trackStr = ""
+    locs.each_with_index do |point, i|
+      puts i
+      if i === locs.length - 1
+        trackStr += "#{point[:lat]},#{point[:lng]}"
+      else
+        trackStr += "#{point[:lat]},#{point[:lng]},"
+      end
+    end
+
+    response = Faraday.get "http://open.mapquestapi.com/elevation/v1/profile?key=#{key}&shapeFormat=raw&latLngCollection=#{trackStr}"
+
+    return JSON.parse(response.body)["elevationProfile"]
+    # response = Faraday.get "https://api.open-elevation.com/api/v1/lookup?locations=#{trackStr}"
+    # JSON.parse(response.body)["results"]
   end
 end
+
+#console.log("MapQuest");
+# const key = MAP_QUEST;
+# let trackStr = "";
+# track.forEach((point, i) => {
+#   if (i === track.length - 1) {
+#     trackStr += point.lat + "," + point.lng;
+#   } else {
+#     trackStr += point.lat + "," + point.lng + ",";
+#   }
+# });
+# fetch(
+#   `http://open.mapquestapi.com/elevation/v1/profile?key=${key}&shapeFormat=raw&latLngCollection=${trackStr}`
+# )
+#   .then((resp) => resp.json())
+#   .then(console.log)
+#   .catch(console.log);
+# };
