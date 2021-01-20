@@ -6,7 +6,7 @@ class TripsController < ApplicationController
   def index
     @trips = Trip.all.select { |trip| trip.users.includes(current_user) }
 
-    render json: @trips.as_json(except: [:created_at, :updated_at])
+    render json: @trips.as_json(include: :legs, except: [:created_at, :updated_at])
   end
 
   # GET /trips/1
