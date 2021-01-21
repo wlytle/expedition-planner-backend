@@ -1,11 +1,12 @@
 class TripsController < ApplicationController
   before_action :set_trip, only: [:show, :update, :destroy]
+  skip_before_action :authorized, only: [:show]
 
   # GET /trips
   def index
-    @trips = Trip.all.where(user_id: params[:id])
+    @trips = Trip.all.select { |trip| trip.users.includes(current_user) }
 
-    render json: @trips
+    render json: @trips.as_json(include: :legs, except: [:created_at, :updated_at])
   end
 
   # GET /trips/1
@@ -16,6 +17,9 @@ class TripsController < ApplicationController
   # POST /trips
   def create
     @trip = Trip.new(trip_params)
+    # default new trip to being uncompleted
+    @trip.completed = false
+    # create usertrip and assign current suer as cretor of this trip
     @trip.user_trips.build(user: current_user, accepted: true, created: true)
 
     if @trip.save
@@ -28,7 +32,7 @@ class TripsController < ApplicationController
   # PATCH/PUT /trips/1
   def update
     if @trip.update(trip_params)
-      render json: @trip
+      render json: @trip.as_json(include: :legs, except: [:created_at, :updated_at])
     else
       render json: @trip.errors, status: :unprocessable_entity
     end
