@@ -32,7 +32,7 @@ class TripsController < ApplicationController
   # PATCH/PUT /trips/1
   def update
     if @trip.update(trip_params)
-      render json: @trip
+      render json: @trip.as_json(include: :legs, except: [:created_at, :updated_at])
     else
       render json: @trip.errors, status: :unprocessable_entity
     end
