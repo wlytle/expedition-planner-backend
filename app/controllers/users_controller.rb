@@ -1,6 +1,6 @@
 class UsersController < ApplicationController
   before_action :set_user, only: [:update, :destroy, :login]
-  skip_before_action :authorized, only: [:create, :login]
+  skip_before_action :authorized, only: [:create, :login, :collabs]
 
   # GET /users
   def index
@@ -38,6 +38,13 @@ class UsersController < ApplicationController
   # DELETE /users/1
   def destroy
     @user.destroy
+  end
+
+  # GET collabs?q=params
+  # search query for users with matchign names
+  def collabs
+    @users = User.all.filter { |user| user.user_name.downcase.include?(params[:q].downcase) }
+    render json: @users, each_serializer: CollabSerializer
   end
 
   private
