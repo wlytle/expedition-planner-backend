@@ -6,8 +6,20 @@ class TripsController < ApplicationController
   def index
     user = current_user
     # @trips = current_user.trips
+
+    # Query to get only accepted trips associated wiht the current user
     @trips = Trip.joins(:user_trips).where(user_trips: { accepted: true }).where(user_trips: { user_id: user.id })
 
+    render json: @trips
+  end
+
+  # GET /invites
+  #  gets all trips current_user has in user_trips that are not yet accepted
+  def invites
+    user = current_user
+
+    # Query to get only not yet accepted trips associated wiht the current user
+    @trips = Trip.joins(:user_trips).where(user_trips: { accepted: false }).where(user_trips: { user_id: user.id })
     render json: @trips
   end
 
