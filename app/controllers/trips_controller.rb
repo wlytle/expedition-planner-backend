@@ -4,9 +4,23 @@ class TripsController < ApplicationController
 
   # GET /trips
   def index
-    @trips = Trip.all.select { |trip| trip.users.includes(current_user) }
+    user = current_user
+    # @trips = current_user.trips
 
-    render json: @trips.as_json(include: :legs, except: [:created_at, :updated_at])
+    # Query to get only accepted trips associated with the current user
+    @trips = Trip.joins(:user_trips).where(user_trips: { accepted: true }).where(user_trips: { user_id: user.id })
+
+    render json: @trips
+  end
+
+  # GET /invites
+  #  gets all trips current_user has in user_trips that are not yet accepted
+  def invites
+    user = current_user
+
+    # Query to get only not yet accepted trips associated wiht the current user
+    @trips = Trip.joins(:user_trips).where(user_trips: { accepted: false }).where(user_trips: { user_id: user.id })
+    render json: @trips
   end
 
   # GET /trips/1
@@ -21,9 +35,13 @@ class TripsController < ApplicationController
     @trip.completed = false
     # create usertrip and assign current suer as cretor of this trip
     @trip.user_trips.build(user: current_user, accepted: true, created: true)
+    # create usertrips for invited collaborators
+    params[:trip][:collabs].each do |collab|
+      @trip.user_trips.build(user_id: collab[:id], accepted: false, created: false)
+    end
 
     if @trip.save
-      render json: @trip.as_json(except: [:created_at, :updated_at]), status: :created, location: @trip
+      render json: @trip
     else
       render json: @trip.errors, status: :unprocessable_entity
     end
@@ -50,7 +68,7 @@ class TripsController < ApplicationController
     @trip = Trip.find(params[:id])
   end
 
-  # Only allow a trusted parameter "white list" through.
+  # Only allow a trusted parameter.
   def trip_params
     params.require(:trip).permit(:start_date, :end_date, :name, :completed, :notes)
   end
