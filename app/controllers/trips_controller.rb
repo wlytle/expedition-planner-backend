@@ -7,7 +7,7 @@ class TripsController < ApplicationController
     user = current_user
     # @trips = current_user.trips
 
-    # Query to get only accepted trips associated wiht the current user
+    # Query to get only accepted trips associated with the current user
     @trips = Trip.joins(:user_trips).where(user_trips: { accepted: true }).where(user_trips: { user_id: user.id })
 
     render json: @trips

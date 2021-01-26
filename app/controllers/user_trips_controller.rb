@@ -1,5 +1,5 @@
 class UserTripsController < ApplicationController
-  before_action :set_user_trip, only: [:show, :update, :destroy]
+  before_action :set_user_trip, only: [:show]
 
   # GET /user_trips
   def index
@@ -26,7 +26,10 @@ class UserTripsController < ApplicationController
 
   # PATCH/PUT /user_trips/1
   def update
-    if @user_trip.update(user_trip_params)
+    @user_trip = UserTrip.find_by(user_id: current_user.id, trip_id: params[:id])
+    @user_trip.accepted = true
+    if @user_trip.save
+      @trip = Trip.find(params[:id])
       render json: @user_trip
     else
       render json: @user_trip.errors, status: :unprocessable_entity
@@ -35,6 +38,7 @@ class UserTripsController < ApplicationController
 
   # DELETE /user_trips/1
   def destroy
+    @user_trip = UserTrip.find_by(user_id: current_user.id, trip_id: params[:id])
     @user_trip.destroy
   end
 
@@ -45,7 +49,7 @@ class UserTripsController < ApplicationController
     @user_trip = UserTrip.find(params[:id])
   end
 
-  # Only allow a trusted parameter "white list" through.
+  # Only allow a trusted parameter
   def user_trip_params
     params.require(:user_trip).permit(:trip_id, :user_id, :accepted, :notes, :created)
   end
