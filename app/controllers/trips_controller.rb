@@ -36,8 +36,10 @@ class TripsController < ApplicationController
     # create usertrip and assign current suer as cretor of this trip
     @trip.user_trips.build(user: current_user, accepted: true, created: true)
     # create usertrips for invited collaborators
-    params[:trip][:collabs].each do |collab|
-      @trip.user_trips.build(user_id: collab[:id], accepted: false, created: false)
+    if params[:collabs]
+      params[:trip][:collabs].each do |collab|
+        @trip.user_trips.build(user_id: collab[:id], accepted: false, created: false)
+      end
     end
 
     if @trip.save
