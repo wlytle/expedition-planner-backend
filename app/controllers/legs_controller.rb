@@ -92,7 +92,7 @@ class LegsController < ApplicationController
 
   # Get elevation for locations from mapquest
   def get_ele(locs)
-    key = MAP_QUEST
+    key = ENV["MAP_QUEST"]
     trackStr = ""
     locs.each_with_index do |point, i|
       if i === locs.length - 1
