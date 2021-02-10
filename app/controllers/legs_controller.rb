@@ -50,7 +50,10 @@ class LegsController < ApplicationController
 
     # get elevation data
     eles = get_ele params[:locs]
-    params[:locs].each_with_index { |loc, i| @leg.locations.build(lat: loc[:lat], lng: loc[:lng], ele: eles[i]["height"]) }
+    params[:locs].each_with_index do |loc, i|
+      eles[i] = 0 if eles[i] < -3000
+      @leg.locations.build(lat: loc[:lat], lng: loc[:lng], ele: eles[i]["height"])
+    end
 
     # calculate aeg
     aeg = get_aeg eles
